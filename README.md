@@ -13,3 +13,8 @@ $ npm install -g binify
 Just run `binify` from your node project's directory.
 
 Run `binify -h` to see more options.
+
+## Limitations
+
+- Doesn't work with native modules yet
+- Haven't tested on Windows yet
