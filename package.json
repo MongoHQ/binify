@@ -21,7 +21,7 @@
       "url": "https://github.com/MongoHQ/binify/blob/master/LICENSE-MIT"
     }
   ],
-  "main": "dist/binify",
+  "main": "dist/compiler",
   "bin": {
     "binify": "./bin/binify"
   },
