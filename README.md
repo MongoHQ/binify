@@ -1,11 +1,15 @@
-# http-routes-layer
+# binify
 
-layer-cake plugin to use a routes file and well-defined controller structure
+Compile and distribute your node apps as a single binary
 
 ## Installation
 
 ```bash
-$ npm install http-routes-layer
+$ npm install -g binify
 ```
 
-Then just add `http-routes-layer` to the `plugins` array in your `package.json`.
+## Usage
+
+Just run `binify` from your node project's directory.
+
+Run `binify -h` to see more options.
