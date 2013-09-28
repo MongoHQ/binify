@@ -41,7 +41,7 @@
       if (pkg_obj != null) {
         if (pkg_obj.main != null) {
           main_path = path.join(prefix, pkg_obj.main.replace(/\.(js|coffee)$/, '') + '.js');
-          source_tree[path.join(prefix, '__main__')] = source_tree[main_path];
+          source_tree[path.join(prefix, '__main__')] = main_path;
         }
         Object.keys(pkg_obj.dependencies).forEach(function(dep) {
           try {
@@ -76,7 +76,7 @@
     SourceBuilder.prototype.process_file = function(file, prefix, source_tree) {
       var content, ext, filename, original_ext;
       original_ext = ext = path.extname(file);
-      if (ext !== '.js' && ext !== '.coffee' && ext !== '.json') {
+      if (ext !== '.js' && ext !== '.coffee' && ext !== '.json' && ext !== '.types') {
         return;
       }
       content = fs.readFileSync(file).toString('ascii');

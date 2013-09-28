@@ -23,7 +23,7 @@ class SourceBuilder
     if pkg_obj?
       if pkg_obj.main?
         main_path = path.join(prefix, pkg_obj.main.replace(/\.(js|coffee)$/, '') + '.js')
-        source_tree[path.join(prefix, '__main__')] = source_tree[main_path]
+        source_tree[path.join(prefix, '__main__')] = main_path
       
       Object.keys(pkg_obj.dependencies).forEach (dep) =>
         try
@@ -44,7 +44,7 @@ class SourceBuilder
   
   process_file: (file, prefix, source_tree) ->
     original_ext = ext = path.extname(file)
-    return unless ext in ['.js', '.coffee', '.json']
+    return unless ext in ['.js', '.coffee', '.json', '.types']
 
     content = fs.readFileSync(file).toString('ascii')
     if original_ext is '.coffee'
