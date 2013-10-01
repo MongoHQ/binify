@@ -1,7 +1,7 @@
 {
   "name": "binify",
   "description": "Compile and distribute your node apps as a single binary",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "homepage": "https://github.com/MongoHQ/binify",
   "author": {
     "name": "Matt Insler",

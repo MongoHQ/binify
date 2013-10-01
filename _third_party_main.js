@@ -16,6 +16,10 @@ var get_content = function(filename) {
   // return new Buffer(third_party_source[filename], 'ascii');
 };
 
+var has_content = function(filename) {
+  return third_party_source[filename] ? true : false;
+}
+
 var resolve_filename = function(name) {
   if (third_party_source[name]) return name;
   if (third_party_source[path.join(name, '__main__')]) return third_party_source[path.join(name, '__main__')];
@@ -90,24 +94,105 @@ Module._extensions['.json'] = function(module, filename) {
   }
 };
 
-// File System Overrides
+// File System
 
 var fs = require('fs');
 
-var _readFileSync = fs.readFileSync;
-fs.readFileSync = function(filename, options) {
-  // console.log('READ SYNC', arguments);
-  if (filename.slice(0, 8) !== '__main__') return _readFileSync.apply(fs, arguments);
+// Override Support
+
+var wrap_fs_method = function(method_name, fn) {
+  if (!fs[method_name]) return;
   
+  var _old_method = fs[method_name];
+  fs[method_name] = function() {
+    if (arguments[0].slice(0, 8) !== '__main__') return _old_method.apply(fs, arguments);
+    return fn.apply(fs, arguments);
+  };
+};
+
+var wrap_fs_method_async = function(method_name, fn) {
+  wrap_fs_method_async(method_name, function() {
+    var callback = arguments[arguments.length - 1];
+    if (typeof(callback) !== 'function') callback = null;
+    
+    try {
+      var result = fn.apply(fs, arguments);
+      if (!callback) return;
+      delay(function() {
+        callback(null, result);
+      });
+    } catch (err) {
+      if (!callback) return;
+      delay(function() {
+        callback(err);
+      });
+    }
+  });
+};
+
+var get_encoding = function(encoding_or_options) {
+  if (!encoding_or_options) return null;
+  if (typeof(encoding_or_options) === 'string') return encoding_or_options;
+  if (encoding_or_options.encoding) return encoding_or_options.encoding;
+  return null;
+};
+
+var delay = function(fn) {
+  if (setImmediate) {
+    setImmediate(fn);
+  } else {
+    process.nextTick(fn);
+  }
+};
+
+// Overrides
+
+var read_file = function(filename, encoding_or_options) {
   var content = get_content(filename);
   if (!content) throw new Error("ENOENT, no such file or directory '" + filename + "'");
   
-  if (options) {
-    if (options.encoding) content = content.toString(options.encoding);
-  }
+  var encoding = get_encoding(encoding_or_options);
+  if (encoding) content = content.toString(encoding);
   
   return content;
 };
+
+wrap_fs_method_async('readFile', read_file);
+wrap_fs_method('readFileSync', read_file);
+
+var exists = function(path) {
+  return has_content(path);
+};
+
+wrap_fs_method_async('exists', exists);
+wrap_fs_method('existsSync', exists);
+
+var unsupported = function(name) {
+  throw new Error('fs.' + name + ' is currently not supported in binify');
+};
+
+wrap_fs_method_async('read', unsupported('read'));
+wrap_fs_method('readSync', unsupported('readSync'));
+wrap_fs_method_async('open', unsupported('open'));
+wrap_fs_method('openSync', unsupported('openSync'));
+wrap_fs_method_async('close', unsupported('close'));
+wrap_fs_method('closeSync', unsupported('closeSync'));
+wrap_fs_method_async('readdir', unsupported('readdir'));
+wrap_fs_method('readdirSync', unsupported('readdirSync'));
+wrap_fs_method_async('stat', unsupported('stat'));
+wrap_fs_method('statSync', unsupported('statSync'));
+wrap_fs_method_async('lstat', unsupported('lstat'));
+wrap_fs_method('lstatSync', unsupported('lstatSync'));
+wrap_fs_method_async('fstat', unsupported('fstat'));
+wrap_fs_method('fstatSync', unsupported('fstatSync'));
+wrap_fs_method_async('', unsupported(''));
+wrap_fs_method('Sync', unsupported('Sync'));
+wrap_fs_method_async('', unsupported(''));
+wrap_fs_method('Sync', unsupported('Sync'));
+
+wrap_fs_method('createReadStream', function(path, options) {
+  throw new Error('fs.createReadStream is currently not supported in binify');
+});
 
 Module._load('__main__', null, true);
 process._tickCallback();
